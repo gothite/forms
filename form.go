@@ -7,7 +7,7 @@ import (
 )
 
 type FormData interface {
-	Clean() error
+	Clean(form *Form) error
 }
 
 // Form describes a form validator.
@@ -69,7 +69,7 @@ func (form *Form) Validate(target FormData, data map[string]interface{}) (error,
 	if len(errors) == 0 {
 		Map(target, data)
 
-		if err := target.Clean(); err != nil {
+		if err := target.Clean(form); err != nil {
 			return err, errors
 		}
 

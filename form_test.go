@@ -1,7 +1,6 @@
 package forms
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/gothite/forms/fields"
@@ -20,9 +19,9 @@ type CustomFormData struct {
 	Username string
 }
 
-func (form *CustomFormData) Clean() error {
-	if form.ID == 0 {
-		return errors.New("ID == 0!")
+func (data *CustomFormData) Clean(form *Form) error {
+	if data.ID == 0 {
+		return form.GetError(ErrorCodeTest, nil)
 	}
 
 	return nil
@@ -70,14 +69,6 @@ func TestFormCleanFail(test *testing.T) {
 
 	if err, _ := CustomForm.Validate(&form, data); err == nil {
 		test.Fatal("Must fail!")
-	}
-}
-
-func TestFormGetError(test *testing.T) {
-	if err := CustomForm.GetError(ErrorCodeTest, nil); err == nil {
-		test.Fatal("Must return error!")
-	} else if _, ok := err.(TestError); !ok {
-		test.Fatal("Must be TestError!")
 	}
 }
 
