@@ -44,7 +44,7 @@ func (form *Form) GetError(code uint, errors map[string]error) error {
 }
 
 func (form *Form) ValidateJSON(target FormData, reader io.Reader) (error, map[string]error) {
-	var data map[string]interface{}
+	var data = make(map[string]interface{}, len(form.Fields))
 
 	if err := json.NewDecoder(reader).Decode(&data); err != nil {
 		return form.GetError(codes.InvalidJSON, nil), nil
