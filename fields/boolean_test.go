@@ -3,132 +3,134 @@ package fields
 import (
 	"testing"
 
+	"github.com/gothite/forms/codes"
 	"github.com/gothite/forms/validators"
 )
 
+type TestBooleanValidator struct{}
+
+func (validator *TestBooleanValidator) Validate(value bool) (bool, *validators.Error) {
+	return value, validators.NewError(codes.Required)
+}
+
+func TestBooleanAsField(test *testing.T) {
+	var _ Field = (*Boolean)(nil)
+}
+
 func TestBooleanIsRequired(test *testing.T) {
-	field := Boolean{Required: false}
+	var field = Boolean{Required: false}
 
 	if field.IsRequired() {
-		test.Error("Returned invalid required flag")
-		return
+		test.Fatal("Must be false!")
 	}
 }
 
 func TestBooleanGetDefault(test *testing.T) {
-	field := Boolean{Default: true}
+	var field = Boolean{Default: true}
 
-	if value, ok := field.GetDefault().(bool); !ok || !value {
-		test.Error("Returned invalid default value")
-		return
+	if value, ok := field.GetDefault().(bool); !ok || value != field.Default {
+		test.Errorf("Incorrect default!")
+		test.Errorf("Expected: %t", field.Default)
+		test.Errorf("Got: %t", value)
 	}
 }
 
 func TestBooleanGetName(test *testing.T) {
-	field := Boolean{Name: "test"}
+	var field = Boolean{Name: "test"}
 
-	if name := field.GetName(); name != field.Name {
-		test.Error("Returned invalid name")
-		return
-	}
-}
-
-func TestBooleanGetValidators(test *testing.T) {
-	field := Boolean{Validators: []validators.Validator{validators.MaxLength(1)}}
-
-	if validators := field.GetValidators(); validators[0] == nil {
-		test.Error("Returned invalid validators")
-		return
+	if got := field.GetName(); got != field.Name {
+		test.Errorf("Incorrect name!")
+		test.Errorf("Expected: %s", field.Name)
+		test.Errorf("Got: %s", got)
 	}
 }
 
 func TestBooleanValidate(test *testing.T) {
-	field := Boolean{}
+	var field = Boolean{}
+	var value = true
 
-	value, err := field.Validate(true)
-
-	if err != nil {
-		test.Errorf("Returned error: %v", err)
-		return
-	}
-
-	if value, ok := value.(bool); !ok || !value {
-		test.Error("Returned invalid boolean")
-		return
-	}
-
-	value, err = field.Validate(false)
-
-	if err != nil {
-		test.Errorf("Returned error: %v", err)
-		return
-	}
-
-	if value, ok := value.(bool); !ok || value {
-		test.Error("Returned invalid boolean")
-		return
-	}
-
-	_, err = field.Validate(nil)
-
-	if err == nil {
-		test.Errorf("Finished without error on wrong boolean")
-		return
+	if got, err := field.Validate(value); err != nil {
+		test.Fatalf("Error: %s", err)
+	} else if got != value {
+		test.Errorf("Incorrect value!")
+		test.Errorf("Expected: %t", value)
+		test.Errorf("Got: %t", got)
 	}
 }
 
-func TestBooleanValidateAsString(test *testing.T) {
-	field := Boolean{AllowStrings: true}
+func TestBooleanValidateInvalidValue(test *testing.T) {
+	var field = Boolean{}
 
-	value, err := field.Validate("t")
-
-	if err != nil {
-		test.Errorf("Returned error: %v", err)
-		return
-	}
-
-	if value, ok := value.(bool); !ok || !value {
-		test.Error("Returned invalid boolean")
-		return
-	}
-
-	value, err = field.Validate("f")
-
-	if err != nil {
-		test.Errorf("Returned error: %v", err)
-		return
-	}
-
-	if value, ok := value.(bool); !ok || value {
-		test.Error("Returned invalid boolean")
-		return
+	if _, err := field.Validate(nil); err == nil {
+		test.Fatalf("Must fail!")
 	}
 }
 
-func TestBooleanValidateAsNumber(test *testing.T) {
-	field := Boolean{AllowNumbers: true}
-
-	value, err := field.Validate(1)
-
-	if err != nil {
-		test.Errorf("Returned error: %v", err)
-		return
+func TestBooleanValidateString(test *testing.T) {
+	var field = Boolean{AllowStrings: true}
+	var values = map[string]bool{
+		"t":     true,
+		"true":  true,
+		"f":     false,
+		"false": false,
 	}
 
-	if value, ok := value.(bool); !ok || !value {
-		test.Error("Returned invalid boolean")
-		return
+	for value, result := range values {
+		if got, err := field.Validate(value); err != nil {
+			test.Fatalf("Error for %s: %s", value, err)
+		} else if got.(bool) != result {
+			test.Errorf("Incorrect value for %s!", value)
+			test.Errorf("Expected: %t", result)
+			test.Errorf("Got: %t", got)
+			return
+		}
+	}
+}
+
+func TestBooleanValidateIncorrectString(test *testing.T) {
+	var field = Boolean{AllowStrings: true}
+
+	if _, err := field.Validate("tru"); err == nil {
+		test.Fatalf("Must fail!")
+	}
+}
+
+func TestBooleanValidateNumber(test *testing.T) {
+	var field = Boolean{AllowNumbers: true}
+
+	var values = map[int]bool{
+		1: true,
+		0: false,
 	}
 
-	value, err = field.Validate(0)
+	for value, result := range values {
+		if got, err := field.Validate(value); err != nil {
+			test.Fatalf("Error for %d: %s", value, err)
+		} else if got.(bool) != result {
+			test.Errorf("Incorrect result for %d!", value)
+			test.Errorf("Expected: %t", result)
+			test.Errorf("Got: %t", got)
+			return
+		}
+	}
+}
 
-	if err != nil {
-		test.Errorf("Returned error: %v", err)
-		return
+func TestBooleanValidateIncorrectNumber(test *testing.T) {
+	var field = Boolean{AllowNumbers: true}
+
+	if _, err := field.Validate(10); err == nil {
+		test.Fatalf("Must fail!")
+	}
+}
+
+func TestBooleanValidateValidators(test *testing.T) {
+	var field = Boolean{
+		Validators: []validators.BooleanValidator{
+			&TestBooleanValidator{},
+		},
 	}
 
-	if value, ok := value.(bool); !ok || value {
-		test.Error("Returned invalid boolean")
-		return
+	if _, err := field.Validate(true); err == nil {
+		test.Fatalf("Must fail!")
 	}
 }

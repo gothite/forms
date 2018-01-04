@@ -8,11 +8,11 @@ type Validator interface {
 
 // Error describes error occured during validation.
 type Error struct {
-	Code       string
+	Code       uint
 	Parameters []interface{}
 }
 
 // NewError initializes new Error instance.
-func NewError(code string, parameters ...interface{}) *Error {
+func NewError(code uint, parameters ...interface{}) *Error {
 	return &Error{Code: code, Parameters: parameters}
 }

@@ -1,9 +1,9 @@
 package fields
 
 import (
-	"fmt"
 	"regexp"
 
+	"github.com/gothite/forms/codes"
 	"github.com/gothite/forms/validators"
 )
 
@@ -13,18 +13,19 @@ var urlRE = regexp.MustCompile(
 )
 
 // URLErrors is a code-error mapping for URL field.
-var URLErrors = map[string]string{
-	"Required": "This field is required.",
-	"Invalid":  "Ensure this value is valid URL string.",
+var URLErrors = map[uint]string{
+	codes.Required: "This field is required.",
+	codes.Invalid:  "Ensure this value is valid URL string.",
 }
 
 // URL is integer field.
 type URL struct {
 	Name       string
-	Validators []validators.Validator
+	Validators []validators.StringValidator
 	Required   bool
 	Default    float64
-	Errors     map[string]string // Overrides default errors
+	Errors     map[uint]string
+	ErrorFunc  ErrorFunc
 }
 
 // IsRequired returns true if field is required.
@@ -42,20 +43,9 @@ func (field *URL) GetName() string {
 	return field.Name
 }
 
-// GetValidators returns additional field validators.
-func (field *URL) GetValidators() []validators.Validator {
-	return field.Validators
-}
-
 // GetError returns error by code.
-func (field *URL) GetError(code string, parameters ...interface{}) error {
-	message, ok := field.Errors[code]
-
-	if !ok {
-		message = URLErrors[code]
-	}
-
-	return fmt.Errorf(message, parameters...)
+func (field *URL) GetError(code uint, value interface{}, parameters ...interface{}) error {
+	return getError(code, value, field.Errors, URLErrors, field.ErrorFunc, parameters...)
 }
 
 // Validate check and clean an input value.
@@ -63,11 +53,21 @@ func (field *URL) Validate(v interface{}) (interface{}, error) {
 	value, ok := v.(string)
 
 	if !ok {
-		return nil, field.GetError("Invalid")
+		return nil, field.GetError(codes.Invalid, v)
 	}
 
 	if !urlRE.MatchString(value) {
-		return nil, field.GetError("Invalid")
+		return nil, field.GetError(codes.Invalid, v)
+	}
+
+	for _, validator := range field.Validators {
+		var err *validators.Error
+
+		value, err = validator.Validate(value)
+
+		if err != nil {
+			return nil, field.GetError(err.Code, v, err.Parameters...)
+		}
 	}
 
 	return value, nil
