@@ -36,16 +36,14 @@ func main() {
 	var form LoginFormData
 	data := map[string]interface{}{"email": "me@pyvimcom", "password": "pass"}
 
-	if ok, errors := LoginForm.Validate(&form, data); !ok {
+	if err, errors := LoginForm.Validate(&form, data); err != nil {
+		fmt.Printf("Form error: %v\n", err)
+
 		for field, err := range errors {
 			fmt.Printf("%v error: %v\n", field, err)
 		}
 	} else {
 		fmt.Printf("Email: %s\n", form.Email)
 		fmt.Printf("Password: %s\n", form.Password)
-
-		if err := form.Clean(); err != nil {
-			fmt.Printf("Form error: %v\n", err)
-		}
 	}
 }
