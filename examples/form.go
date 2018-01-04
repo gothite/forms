@@ -37,7 +37,7 @@ var LoginForm = forms.NewForm(
 
 func main() {
 	var form LoginFormData
-	data := map[string]interface{}{"email": "me@pyvimcom", "password": "pass"}
+	data := map[string]interface{}{"email": "hello@binlockme", "password": "pass"}
 
 	if err, errors := LoginForm.Validate(&form, data); err != nil {
 		fmt.Printf("Form error: %v\n", err)
