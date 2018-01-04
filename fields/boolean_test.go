@@ -3,13 +3,14 @@ package fields
 import (
 	"testing"
 
+	"github.com/gothite/forms/codes"
 	"github.com/gothite/forms/validators"
 )
 
 type TestBooleanValidator struct{}
 
 func (validator *TestBooleanValidator) Validate(value bool) (bool, *validators.Error) {
-	return value, validators.NewError("Required")
+	return value, validators.NewError(codes.Required)
 }
 
 func TestBooleanAsField(test *testing.T) {

@@ -1,16 +1,18 @@
 package fields
 
 import (
-	"fmt"
 	"strconv"
 
+	"github.com/gothite/forms/codes"
 	"github.com/gothite/forms/validators"
 )
 
 // FloatErrors is a code-error mapping for Float field.
-var FloatErrors = map[string]string{
-	"Required": "This field is required.",
-	"Invalid":  "Ensure this value is a valid float.",
+var FloatErrors = map[uint]string{
+	codes.Required: "This field is required.",
+	codes.Invalid:  "Ensure this value is a valid float.",
+	codes.MinValue: "Ensure this value is greater than or equal to %f.",
+	codes.MaxValue: "Ensure this value is less than or equal to %f.",
 }
 
 // Float is float field.
@@ -19,7 +21,8 @@ type Float struct {
 	Validators []validators.FloatValidator
 	Required   bool
 	Default    float64
-	Errors     map[string]string // Overrides default errors
+	Errors     map[uint]string
+	ErrorFunc  ErrorFunc
 
 	AllowStrings bool
 }
@@ -40,14 +43,8 @@ func (field *Float) GetName() string {
 }
 
 // GetError returns error by code.
-func (field *Float) GetError(code string, parameters ...interface{}) error {
-	message, ok := field.Errors[code]
-
-	if !ok {
-		message = FloatErrors[code]
-	}
-
-	return fmt.Errorf(message, parameters...)
+func (field *Float) GetError(code uint, value interface{}, parameters ...interface{}) error {
+	return getError(code, value, field.Errors, FloatErrors, field.ErrorFunc, parameters...)
 }
 
 // Validate check and clean an input value.
@@ -64,11 +61,11 @@ func (field *Float) Validate(v interface{}) (interface{}, error) {
 			value, err = strconv.ParseFloat(v, 64)
 
 			if err != nil {
-				return nil, field.GetError("Invalid")
+				return nil, field.GetError(codes.Invalid, v)
 			}
 		}
 	default:
-		return nil, field.GetError("Invalid")
+		return nil, field.GetError(codes.Invalid, v)
 	}
 
 	for _, validator := range field.Validators {
@@ -77,7 +74,7 @@ func (field *Float) Validate(v interface{}) (interface{}, error) {
 		value, err = validator.Validate(value)
 
 		if err != nil {
-			return nil, field.GetError(err.Code, err.Parameters...)
+			return nil, field.GetError(err.Code, v, err.Parameters...)
 		}
 	}
 

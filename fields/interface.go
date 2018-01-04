@@ -5,6 +5,8 @@ type Field interface {
 	GetName() string
 	IsRequired() bool
 	GetDefault() interface{}
-	GetError(code string, parameters ...interface{}) error
+	GetError(code uint, value interface{}, parameters ...interface{}) error
 	Validate(value interface{}) (interface{}, error)
 }
+
+type ErrorFunc func(code uint, value interface{}, parameters ...interface{}) error

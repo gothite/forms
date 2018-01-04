@@ -1,5 +1,7 @@
 package validators
 
+import "github.com/gothite/forms/codes"
+
 type StringValidator interface {
 	Validate(value string) (string, *Error)
 }
@@ -12,7 +14,7 @@ type StringMinLengthValidator struct {
 // Validate do validation.
 func (validator StringMinLengthValidator) Validate(value string) (string, *Error) {
 	if len(value) < validator.Length {
-		return value, NewError("MinLength", validator.Length)
+		return value, NewError(codes.MinLength, validator.Length)
 	}
 
 	return value, nil
@@ -31,7 +33,7 @@ type StringMaxLengthValidator struct {
 // Validate do validation.
 func (validator StringMaxLengthValidator) Validate(value string) (string, *Error) {
 	if len(value) > validator.Length {
-		return value, NewError("MaxLength", validator.Length)
+		return value, NewError(codes.MaxLength, validator.Length)
 	}
 
 	return value, nil

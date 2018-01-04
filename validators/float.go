@@ -1,5 +1,7 @@
 package validators
 
+import "github.com/gothite/forms/codes"
+
 type FloatValidator interface {
 	Validate(value float64) (float64, *Error)
 }
@@ -12,7 +14,7 @@ type FloatMinValueValidator struct {
 // Validate do validation.
 func (validator *FloatMinValueValidator) Validate(value float64) (float64, *Error) {
 	if value < validator.Value {
-		return value, NewError("MinValue", validator.Value)
+		return value, NewError(codes.MinValue, validator.Value)
 	}
 
 	return value, nil
@@ -31,7 +33,7 @@ type FloatMaxValueValidator struct {
 // Validate do validation.
 func (validator FloatMaxValueValidator) Validate(value float64) (float64, *Error) {
 	if value > validator.Value {
-		return value, NewError("MaxValue", validator.Value)
+		return value, NewError(codes.MaxValue, validator.Value)
 	}
 
 	return value, nil

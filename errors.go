@@ -1,15 +1,14 @@
 package forms
 
-import "fmt"
+import (
+	"fmt"
 
-const (
-	ErrorCodeUnknown uint = iota
-	ErrorCodeInvalid
+	"github.com/gothite/forms/codes"
 )
 
-var FormErrors = map[uint]string{
-	ErrorCodeUnknown: "Unknown error.",
-	ErrorCodeInvalid: "Ensure that all values are valid.",
+var Errors = map[uint]string{
+	codes.Unknown: "Unknown error.",
+	codes.Invalid: "Ensure that all values are valid.",
 }
 
 type Error struct {

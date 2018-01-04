@@ -1,18 +1,17 @@
 package fields
 
 import (
-	"fmt"
-
+	"github.com/gothite/forms/codes"
 	"github.com/gothite/forms/validators"
 )
 
 // StringErrors is a code-error mapping for String field.
-var StringErrors = map[string]string{
-	"Required":  "This field is required.",
-	"Invalid":   "Ensure this value is valid string.",
-	"Blank":     "Blank strings aren't allowed.",
-	"MinLength": "Ensure this value has at least %v characters.",
-	"MaxLength": "Ensure this value has at most %v characters.",
+var StringErrors = map[uint]string{
+	codes.Required:  "This field is required.",
+	codes.Invalid:   "Ensure this value is valid string.",
+	codes.Blank:     "Blank strings aren't allowed.",
+	codes.MinLength: "Ensure this value has at least %d characters.",
+	codes.MaxLength: "Ensure this value has at most %d characters.",
 }
 
 // String is boolean field.
@@ -21,7 +20,8 @@ type String struct {
 	Validators []validators.StringValidator
 	Required   bool
 	Default    string
-	Errors     map[string]string
+	Errors     map[uint]string
+	ErrorFunc  ErrorFunc
 
 	AllowBlank bool
 }
@@ -42,14 +42,8 @@ func (field *String) GetName() string {
 }
 
 // GetError returns error by code.
-func (field *String) GetError(code string, parameters ...interface{}) error {
-	message, ok := field.Errors[code]
-
-	if !ok {
-		message = StringErrors[code]
-	}
-
-	return fmt.Errorf(message, parameters...)
+func (field *String) GetError(code uint, value interface{}, parameters ...interface{}) error {
+	return getError(code, value, field.Errors, StringErrors, field.ErrorFunc, parameters...)
 }
 
 // Validate check and clean an input value.
@@ -57,11 +51,11 @@ func (field *String) Validate(v interface{}) (interface{}, error) {
 	value, ok := v.(string)
 
 	if !ok {
-		return nil, field.GetError("Invalid")
+		return nil, field.GetError(codes.Invalid, v)
 	}
 
 	if len(value) == 0 && !field.AllowBlank {
-		return nil, field.GetError("Blank")
+		return nil, field.GetError(codes.Blank, v)
 	}
 
 	for _, validator := range field.Validators {
@@ -70,7 +64,7 @@ func (field *String) Validate(v interface{}) (interface{}, error) {
 		value, err = validator.Validate(value)
 
 		if err != nil {
-			return nil, field.GetError(err.Code, err.Parameters...)
+			return nil, field.GetError(err.Code, v, err.Parameters...)
 		}
 	}
 

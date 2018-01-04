@@ -3,6 +3,7 @@ package forms
 import (
 	"reflect"
 
+	"github.com/gothite/forms/codes"
 	"github.com/gothite/forms/fields"
 )
 
@@ -24,7 +25,7 @@ func NewForm(errors map[uint]error, fields ...fields.Field) *Form {
 func (form *Form) GetError(code uint, errors map[string]error) error {
 	if err, ok := form.Errors[code]; ok {
 		return err
-	} else if message, ok := FormErrors[code]; ok {
+	} else if message, ok := Errors[code]; ok {
 		return &Error{
 			Code:    code,
 			Message: message,
@@ -32,8 +33,8 @@ func (form *Form) GetError(code uint, errors map[string]error) error {
 		}
 	} else {
 		return &Error{
-			Code:    ErrorCodeUnknown,
-			Message: FormErrors[ErrorCodeUnknown],
+			Code:    codes.Unknown,
+			Message: Errors[codes.Unknown],
 			Errors:  errors,
 		}
 	}
@@ -48,7 +49,7 @@ func (form *Form) Validate(target FormData, data map[string]interface{}) (error,
 
 		if !ok {
 			if field.IsRequired() {
-				errors[field.GetName()] = field.GetError("Required")
+				errors[field.GetName()] = field.GetError(codes.Required, nil)
 			} else {
 				data[field.GetName()] = field.GetDefault()
 			}
@@ -76,7 +77,7 @@ func (form *Form) Validate(target FormData, data map[string]interface{}) (error,
 		return nil, errors
 	}
 
-	return form.GetError(ErrorCodeInvalid, errors), errors
+	return form.GetError(codes.Invalid, errors), errors
 }
 
 func Map(target FormData, data map[string]interface{}) {

@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/gothite/forms"
+	"github.com/gothite/forms/codes"
 	"github.com/gothite/forms/fields"
 	"github.com/gothite/forms/validators"
 )
@@ -13,16 +15,17 @@ type LoginFormData struct {
 	Password string `forms:"password"`
 }
 
-func (form *LoginFormData) Clean() error {
+func (data *LoginFormData) Clean(form *forms.Form) error {
 	// Check data
 	return nil
 }
 
 // LoginForm handles user login.
 var LoginForm = forms.NewForm(
+	map[uint]error{codes.Invalid: errors.New("Please, check data.")},
 	&fields.Email{
 		Name:   "email",
-		Errors: map[string]string{"Invalid": "Please, set a valid email."},
+		Errors: map[uint]string{codes.Invalid: "Please, set a valid email."},
 	},
 	&fields.String{
 		Name: "password",

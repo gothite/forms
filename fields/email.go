@@ -1,9 +1,9 @@
 package fields
 
 import (
-	"fmt"
 	"regexp"
 
+	"github.com/gothite/forms/codes"
 	"github.com/gothite/forms/validators"
 )
 
@@ -13,9 +13,9 @@ var emailRE = regexp.MustCompile(
 )
 
 // EmailErrors is a code-error mapping for Email field.
-var EmailErrors = map[string]string{
-	"Required": "This field is required.",
-	"Invalid":  "Ensure this value is valid email string.",
+var EmailErrors = map[uint]string{
+	codes.Required: "This field is required.",
+	codes.Invalid:  "Ensure this value is valid email string.",
 }
 
 // Email is integer field.
@@ -24,7 +24,8 @@ type Email struct {
 	Validators []validators.StringValidator
 	Required   bool
 	Default    string
-	Errors     map[string]string // Overrides default errors
+	Errors     map[uint]string
+	ErrorFunc  ErrorFunc
 }
 
 // IsRequired returns true if field is required.
@@ -43,14 +44,8 @@ func (field *Email) GetName() string {
 }
 
 // GetError returns error by code.
-func (field *Email) GetError(code string, parameters ...interface{}) error {
-	message, ok := field.Errors[code]
-
-	if !ok {
-		message = EmailErrors[code]
-	}
-
-	return fmt.Errorf(message, parameters...)
+func (field *Email) GetError(code uint, value interface{}, parameters ...interface{}) error {
+	return getError(code, value, field.Errors, EmailErrors, field.ErrorFunc, parameters...)
 }
 
 // Validate check and clean an input value.
@@ -58,11 +53,11 @@ func (field *Email) Validate(v interface{}) (interface{}, error) {
 	value, ok := v.(string)
 
 	if !ok {
-		return nil, field.GetError("Invalid")
+		return nil, field.GetError(codes.Invalid, v)
 	}
 
 	if !emailRE.MatchString(value) {
-		return nil, field.GetError("Invalid")
+		return nil, field.GetError(codes.Invalid, v)
 	}
 
 	for _, validator := range field.Validators {
@@ -71,7 +66,7 @@ func (field *Email) Validate(v interface{}) (interface{}, error) {
 		value, err = validator.Validate(value)
 
 		if err != nil {
-			return nil, field.GetError(err.Code, err.Parameters...)
+			return nil, field.GetError(err.Code, v, err.Parameters...)
 		}
 	}
 

@@ -1,5 +1,7 @@
 package validators
 
+import "github.com/gothite/forms/codes"
+
 type IntegerValidator interface {
 	Validate(value int) (int, *Error)
 }
@@ -12,7 +14,7 @@ type IntegerMinValueValidator struct {
 // Validate do validation.
 func (validator IntegerMinValueValidator) Validate(value int) (int, *Error) {
 	if value < validator.Value {
-		return value, NewError("MinValue", validator.Value)
+		return value, NewError(codes.MinValue, validator.Value)
 	}
 
 	return value, nil
@@ -31,7 +33,7 @@ type IntegerMaxValueValidator struct {
 // Validate do validation.
 func (validator IntegerMaxValueValidator) Validate(value int) (int, *Error) {
 	if value > validator.Value {
-		return value, NewError("MaxValue", validator.Value)
+		return value, NewError(codes.MaxValue, validator.Value)
 	}
 
 	return value, nil

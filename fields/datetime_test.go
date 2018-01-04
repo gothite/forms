@@ -4,13 +4,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gothite/forms/codes"
 	"github.com/gothite/forms/validators"
 )
 
 type TestDatetimeValidator struct{}
 
 func (validator *TestDatetimeValidator) Validate(value time.Time) (time.Time, *validators.Error) {
-	return value, validators.NewError("Required")
+	return value, validators.NewError(codes.Required)
 }
 
 func TestDatetimeAsField(test *testing.T) {
