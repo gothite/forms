@@ -6,6 +6,10 @@ import (
 	"github.com/gothite/forms/validators"
 )
 
+func TestURLAsField(test *testing.T) {
+	var _ Field = (*URL)(nil)
+}
+
 func TestURLIsRequired(test *testing.T) {
 	field := URL{Required: false}
 
@@ -33,42 +37,43 @@ func TestURLGetName(test *testing.T) {
 	}
 }
 
-func TestURLGetValidators(test *testing.T) {
-	field := URL{Validators: []validators.Validator{validators.MaxLength(1)}}
+func TestURLValidate(test *testing.T) {
+	var field = URL{}
+	var value = "https://github.com/gothite/forms"
 
-	if validators := field.GetValidators(); validators[0] == nil {
-		test.Error("Returned invalid validators")
-		return
+	if got, err := field.Validate(value); err != nil {
+		test.Fatalf("Error: %s", err)
+	} else if got != value {
+		test.Errorf("Incorrect value!")
+		test.Errorf("Expected: %s", value)
+		test.Errorf("Got: %s", got)
 	}
 }
 
-func TestURLValidate(test *testing.T) {
-	field := URL{}
+func TestURLValidateInvalidValue(test *testing.T) {
+	var field = URL{}
 
-	value := "https://github.com/gothite/forms"
-	result, err := field.Validate(value)
+	if _, err := field.Validate(nil); err == nil {
+		test.Fatal("Must fail!")
+	}
+}
 
-	if err != nil {
-		test.Errorf("Returned error: %v", err)
-		return
+func TestURLValidateIncorrectValue(test *testing.T) {
+	var field = URL{}
+
+	if _, err := field.Validate(":/github.com/gothite/forms"); err == nil {
+		test.Fatal("Must fail!")
+	}
+}
+
+func TestURLValidateValidators(test *testing.T) {
+	field := URL{
+		Validators: []validators.StringValidator{
+			validators.StringMaxLength(2),
+		},
 	}
 
-	if result, ok := result.(string); !ok || result != value {
-		test.Errorf("Returned invalid value: %v", result)
-		return
-	}
-
-	_, err = field.Validate(nil)
-
-	if err == nil {
-		test.Errorf("Finished without error on wrong string")
-		return
-	}
-
-	_, err = field.Validate("://")
-
-	if err == nil {
-		test.Errorf("Finished without error on wrong URL string")
-		return
+	if _, err := field.Validate("https://github.com/gothite/forms"); err == nil {
+		test.Fatalf("Must fail!")
 	}
 }

@@ -1,76 +1,87 @@
 package fields
 
 import (
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/gothite/forms/validators"
 )
 
+type TestDatetimeValidator struct{}
+
+func (validator *TestDatetimeValidator) Validate(value time.Time) (time.Time, *validators.Error) {
+	return value, validators.NewError("Required")
+}
+
+func TestDatetimeAsField(test *testing.T) {
+	var _ Field = (*Datetime)(nil)
+}
+
 func TestDatetimeIsRequired(test *testing.T) {
-	field := Datetime{Required: false}
+	var field = Datetime{Required: false}
 
 	if field.IsRequired() {
-		test.Error("Returned invalid required flag")
-		return
+		test.Fatal("Must be false!")
 	}
 }
 
 func TestDatetimeGetDefault(test *testing.T) {
-	field := Datetime{Default: 1.0}
+	var field = Datetime{Default: time.Now()}
 
-	if value, ok := field.GetDefault().(float64); !ok || value != field.Default {
-		test.Error("Returned invalid default value")
-		return
+	if value, ok := field.GetDefault().(time.Time); !ok || value != field.Default {
+		test.Errorf("Incorrect value!")
+		test.Errorf("Expected: %s", field.Default)
+		test.Errorf("Got: %s", value)
 	}
 }
 
 func TestDatetimeGetName(test *testing.T) {
-	field := Datetime{Name: "test"}
+	var field = Datetime{Name: "test"}
 
-	if name := field.GetName(); name != field.Name {
-		test.Error("Returned invalid name")
-		return
-	}
-}
-
-func TestDatetimeGetValidators(test *testing.T) {
-	field := Datetime{Validators: []validators.Validator{validators.MaxLength(1)}}
-
-	if validators := field.GetValidators(); validators[0] == nil {
-		test.Error("Returned invalid validators")
-		return
+	if got := field.GetName(); got != field.Name {
+		test.Errorf("Incorrect name!")
+		test.Errorf("Expected: %s", field.Name)
+		test.Errorf("Got: %s", got)
 	}
 }
 
 func TestDatetimeValidate(test *testing.T) {
-	field := Datetime{}
+	var field = Datetime{}
+	var value = time.Now()
 
-	value := strings.Replace(time.RFC3339, "Z", "-", 1)
-	result, err := field.Validate(value)
+	if got, err := field.Validate(value.Format(time.RFC3339)); err != nil {
+		test.Fatalf("Error: %s", err)
+	} else if value.Equal(got.(time.Time)) {
+		test.Errorf("Incorrect value!")
+		test.Errorf("Expected: %s", value)
+		test.Errorf("Got: %s", got)
+	}
+}
 
-	if err != nil {
-		test.Errorf("Returned error: %v", err)
-		return
+func TestDatetimeValidateInvalidValue(test *testing.T) {
+	var field = Datetime{}
+
+	if _, err := field.Validate(nil); err == nil {
+		test.Fatal("Must fail!")
+	}
+}
+
+func TestDatetimeValidateIncorrectValue(test *testing.T) {
+	var field = Datetime{}
+
+	if _, err := field.Validate(time.Now().Format(time.RFC1123)); err == nil {
+		test.Fatal("Must fail!")
+	}
+}
+
+func TestDatetimeValidateValidators(test *testing.T) {
+	var field = Datetime{
+		Validators: []validators.DatetimeValidator{
+			&TestDatetimeValidator{},
+		},
 	}
 
-	if result, ok := result.(time.Time); !ok || result.Format(time.RFC3339) != value {
-		test.Errorf("Returned invalid value: %v", result)
-		return
-	}
-
-	_, err = field.Validate(nil)
-
-	if err == nil {
-		test.Errorf("Finished without error on wrong string")
-		return
-	}
-
-	_, err = field.Validate("")
-
-	if err == nil {
-		test.Errorf("Finished without error on wrong datetime string")
-		return
+	if _, err := field.Validate(time.Now().Format(time.RFC3339)); err == nil {
+		test.Fatalf("Must fail!")
 	}
 }

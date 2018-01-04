@@ -21,9 +21,9 @@ var EmailErrors = map[string]string{
 // Email is integer field.
 type Email struct {
 	Name       string
-	Validators []validators.Validator
+	Validators []validators.StringValidator
 	Required   bool
-	Default    float64
+	Default    string
 	Errors     map[string]string // Overrides default errors
 }
 
@@ -40,11 +40,6 @@ func (field *Email) GetDefault() interface{} {
 // GetName returns field name.
 func (field *Email) GetName() string {
 	return field.Name
-}
-
-// GetValidators returns additional field validators.
-func (field *Email) GetValidators() []validators.Validator {
-	return field.Validators
 }
 
 // GetError returns error by code.
@@ -68,6 +63,16 @@ func (field *Email) Validate(v interface{}) (interface{}, error) {
 
 	if !emailRE.MatchString(value) {
 		return nil, field.GetError("Invalid")
+	}
+
+	for _, validator := range field.Validators {
+		var err *validators.Error
+
+		value, err = validator.Validate(value)
+
+		if err != nil {
+			return nil, field.GetError(err.Code, err.Parameters...)
+		}
 	}
 
 	return value, nil

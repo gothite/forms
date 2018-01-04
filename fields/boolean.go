@@ -2,6 +2,7 @@ package fields
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gothite/forms/validators"
 )
@@ -15,7 +16,7 @@ var BooleanErrors = map[string]string{
 // Boolean is boolean field.
 type Boolean struct {
 	Name       string
-	Validators []validators.Validator
+	Validators []validators.BooleanValidator
 	Required   bool
 	Default    bool
 	Errors     map[string]string
@@ -39,11 +40,6 @@ func (field *Boolean) GetName() string {
 	return field.Name
 }
 
-// GetValidators returns additional field validators.
-func (field *Boolean) GetValidators() []validators.Validator {
-	return field.Validators
-}
-
 // GetError returns error by code.
 func (field *Boolean) GetError(code string, parameters ...interface{}) error {
 	message, ok := field.Errors[code]
@@ -57,30 +53,45 @@ func (field *Boolean) GetError(code string, parameters ...interface{}) error {
 
 // Validate check and clean an input value.
 func (field *Boolean) Validate(v interface{}) (interface{}, error) {
-	if field.AllowStrings {
-		if value, ok := v.(string); ok {
-			if value == "t" || value == "true" {
-				return true, nil
-			} else if value == "f" || value == "false" {
-				return false, nil
+	var value bool
+
+	switch v := v.(type) {
+	case bool:
+		value = v
+	case string:
+		if field.AllowStrings {
+			v = strings.ToLower(v)
+
+			if v == "t" || v == "true" {
+				value = true
+			} else if v == "f" || v == "false" {
+				value = false
+			} else {
+				return nil, field.GetError("Invalid")
 			}
 		}
-	}
-
-	if field.AllowNumbers {
-		if value, ok := v.(int); ok {
-			if value == 1 {
-				return true, nil
-			} else if value == 0 {
-				return false, nil
+	case int:
+		if field.AllowNumbers {
+			if v == 1 {
+				value = true
+			} else if v == 0 {
+				value = false
+			} else {
+				return nil, field.GetError("Invalid")
 			}
 		}
-	}
-
-	value, ok := v.(bool)
-
-	if !ok {
+	default:
 		return nil, field.GetError("Invalid")
+	}
+
+	for _, validator := range field.Validators {
+		var err *validators.Error
+
+		value, err = validator.Validate(value)
+
+		if err != nil {
+			return nil, field.GetError(err.Code, err.Parameters...)
+		}
 	}
 
 	return value, nil

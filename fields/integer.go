@@ -18,14 +18,12 @@ var IntegerErrors = map[string]string{
 // Integer is integer field.
 type Integer struct {
 	Name       string
-	Validators []validators.Validator
+	Validators []validators.IntegerValidator
 	Required   bool
 	Default    int
 	Errors     map[string]string // Overrides default errors
 
 	AllowStrings bool
-	MinValue     *validators.MinValueValidator
-	MaxValue     *validators.MaxValueValidator
 }
 
 // IsRequired returns true if field is required.
@@ -41,11 +39,6 @@ func (field *Integer) GetDefault() interface{} {
 // GetName returns field name.
 func (field *Integer) GetName() string {
 	return field.Name
-}
-
-// GetValidators returns additional field validators.
-func (field *Integer) GetValidators() []validators.Validator {
-	return field.Validators
 }
 
 // GetError returns error by code.
@@ -77,22 +70,6 @@ func (field *Integer) Validate(v interface{}) (interface{}, error) {
 
 	if !ok {
 		return nil, field.GetError("Invalid")
-	}
-
-	if field.MinValue != nil {
-		_, err := field.MinValue.Validate(value)
-
-		if err != nil {
-			return nil, field.GetError(err.Code, err.Parameters...)
-		}
-	}
-
-	if field.MaxValue != nil {
-		_, err := field.MaxValue.Validate(value)
-
-		if err != nil {
-			return nil, field.GetError(err.Code, err.Parameters...)
-		}
 	}
 
 	return value, nil

@@ -6,6 +6,10 @@ import (
 	"github.com/gothite/forms/validators"
 )
 
+func TestStringAsField(test *testing.T) {
+	var _ Field = (*String)(nil)
+}
+
 func TestStringIsRequired(test *testing.T) {
 	field := String{Required: false}
 
@@ -33,81 +37,59 @@ func TestStringGetName(test *testing.T) {
 	}
 }
 
-func TestStringGetValidators(test *testing.T) {
-	field := String{Validators: []validators.Validator{validators.MaxLength(1)}}
+func TestStringValidate(test *testing.T) {
+	var field = String{}
+	var value = "string"
 
-	if validators := field.GetValidators(); validators[0] == nil {
-		test.Error("Returned invalid validators")
-		return
+	if got, err := field.Validate(value); err != nil {
+		test.Fatalf("Error: %s", err)
+	} else if got != value {
+		test.Errorf("Incorrect value!")
+		test.Errorf("Expected: %s", value)
+		test.Errorf("Got: %s", got)
 	}
 }
 
-func TestStringValidate(test *testing.T) {
-	field := String{}
+func TestStringValidateInvalidValue(test *testing.T) {
+	var field = String{}
 
-	str := "test"
-	value, err := field.Validate(str)
-
-	if err != nil {
-		test.Errorf("Returned error: %v", err)
-		return
-	}
-
-	if value, ok := value.(string); !ok || value != str {
-		test.Error("Returned invalid string")
-		return
-	}
-
-	_, err = field.Validate(nil)
-
-	if err == nil {
-		test.Errorf("Finished without error on wrong string")
-		return
+	if _, err := field.Validate(nil); err == nil {
+		test.Fatal("Must fail!")
 	}
 }
 
 func TestStringValidateBlank(test *testing.T) {
-	field := String{}
+	var field = String{}
+	var value = ""
 
-	_, err := field.Validate("")
-
-	if err == nil {
-		test.Errorf("Finished without error on blank string")
-		return
+	if _, err := field.Validate(value); err == nil {
+		test.Fatal("Must fail!")
 	}
 
 	field.AllowBlank = true
 
-	value, err := field.Validate("")
-
-	if err != nil {
-		test.Errorf("Returned error: %v", err)
-		return
-	}
-
-	if value, ok := value.(string); !ok || value != "" {
-		test.Error("Returned invalid string")
-		return
+	if got, err := field.Validate(value); err != nil {
+		test.Fatalf("Error: %s", err)
+	} else if got != value {
+		test.Errorf("Incorrect value!")
+		test.Errorf("Expected: %s", value)
+		test.Errorf("Got: %s", got)
 	}
 }
 
-func TestStringValidateLength(test *testing.T) {
+func TestStringValidateValidators(test *testing.T) {
 	field := String{
-		MinLength: validators.MinLength(2),
-		MaxLength: validators.MaxLength(4),
+		Validators: []validators.StringValidator{
+			validators.StringMinLength(2),
+			validators.StringMaxLength(4),
+		},
 	}
 
-	_, err := field.Validate("12345")
-
-	if err == nil {
-		test.Errorf("Finished without error on too long string")
-		return
+	if _, err := field.Validate("12345"); err == nil {
+		test.Fatalf("Must fail!")
 	}
 
-	_, err = field.Validate("1")
-
-	if err == nil {
-		test.Errorf("Finished without error on too small string")
-		return
+	if _, err := field.Validate("1"); err == nil {
+		test.Fatalf("Must fail!")
 	}
 }

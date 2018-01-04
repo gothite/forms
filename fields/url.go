@@ -21,7 +21,7 @@ var URLErrors = map[string]string{
 // URL is integer field.
 type URL struct {
 	Name       string
-	Validators []validators.Validator
+	Validators []validators.StringValidator
 	Required   bool
 	Default    float64
 	Errors     map[string]string // Overrides default errors
@@ -42,11 +42,6 @@ func (field *URL) GetName() string {
 	return field.Name
 }
 
-// GetValidators returns additional field validators.
-func (field *URL) GetValidators() []validators.Validator {
-	return field.Validators
-}
-
 // GetError returns error by code.
 func (field *URL) GetError(code string, parameters ...interface{}) error {
 	message, ok := field.Errors[code]
@@ -63,11 +58,21 @@ func (field *URL) Validate(v interface{}) (interface{}, error) {
 	value, ok := v.(string)
 
 	if !ok {
-		return nil, field.GetError("Invalid")
+
 	}
 
 	if !urlRE.MatchString(value) {
 		return nil, field.GetError("Invalid")
+	}
+
+	for _, validator := range field.Validators {
+		var err *validators.Error
+
+		value, err = validator.Validate(value)
+
+		if err != nil {
+			return nil, field.GetError(err.Code, err.Parameters...)
+		}
 	}
 
 	return value, nil

@@ -16,9 +16,9 @@ var DatetimeErrors = map[string]string{
 // Datetime is integer field.
 type Datetime struct {
 	Name       string
-	Validators []validators.Validator
+	Validators []validators.DatetimeValidator
 	Required   bool
-	Default    float64
+	Default    time.Time
 	Errors     map[string]string // Overrides default errors
 }
 
@@ -37,11 +37,6 @@ func (field *Datetime) GetName() string {
 	return field.Name
 }
 
-// GetValidators returns additional field validators.
-func (field *Datetime) GetValidators() []validators.Validator {
-	return field.Validators
-}
-
 // GetError returns error by code.
 func (field *Datetime) GetError(code string, parameters ...interface{}) error {
 	message, ok := field.Errors[code]
@@ -55,17 +50,29 @@ func (field *Datetime) GetError(code string, parameters ...interface{}) error {
 
 // Validate check and clean an input value.
 func (field *Datetime) Validate(v interface{}) (interface{}, error) {
-	value, ok := v.(string)
+	var value time.Time
 
-	if !ok {
+	if v, ok := v.(string); !ok {
 		return nil, field.GetError("Invalid")
+	} else {
+		var err error
+
+		value, err = time.Parse(time.RFC3339Nano, v)
+
+		if err != nil {
+			return nil, field.GetError("Invalid")
+		}
 	}
 
-	datetime, err := time.Parse(time.RFC3339, value)
+	for _, validator := range field.Validators {
+		var err *validators.Error
 
-	if err != nil {
-		return nil, err
+		value, err = validator.Validate(value)
+
+		if err != nil {
+			return nil, field.GetError(err.Code, err.Parameters...)
+		}
 	}
 
-	return datetime, nil
+	return value, nil
 }

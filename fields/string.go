@@ -18,14 +18,12 @@ var StringErrors = map[string]string{
 // String is boolean field.
 type String struct {
 	Name       string
-	Validators []validators.Validator
+	Validators []validators.StringValidator
 	Required   bool
 	Default    string
 	Errors     map[string]string
 
 	AllowBlank bool
-	MinLength  *validators.MinLengthValidator
-	MaxLength  *validators.MaxLengthValidator
 }
 
 // IsRequired returns true if field is required.
@@ -41,11 +39,6 @@ func (field *String) GetDefault() interface{} {
 // GetName returns field name.
 func (field *String) GetName() string {
 	return field.Name
-}
-
-// GetValidators returns additional field validators.
-func (field *String) GetValidators() []validators.Validator {
-	return field.Validators
 }
 
 // GetError returns error by code.
@@ -71,16 +64,10 @@ func (field *String) Validate(v interface{}) (interface{}, error) {
 		return nil, field.GetError("Blank")
 	}
 
-	if field.MinLength != nil {
-		_, err := field.MinLength.Validate(value)
+	for _, validator := range field.Validators {
+		var err *validators.Error
 
-		if err != nil {
-			return nil, field.GetError(err.Code, err.Parameters...)
-		}
-	}
-
-	if field.MaxLength != nil {
-		_, err := field.MaxLength.Validate(value)
+		value, err = validator.Validate(value)
 
 		if err != nil {
 			return nil, field.GetError(err.Code, err.Parameters...)
