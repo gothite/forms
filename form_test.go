@@ -2,6 +2,7 @@ package forms
 
 import (
 	"bytes"
+	"net/url"
 	"testing"
 
 	"github.com/gothite/forms/fields"
@@ -12,7 +13,7 @@ const ErrorCodeTest uint = 777
 var CustomForm = NewForm(
 	map[uint]error{ErrorCodeTest: TestError{}},
 	&fields.Integer{Name: "id", Required: true, AllowStrings: true},
-	&fields.String{Name: "Username"},
+	&fields.String{Name: "Username", AllowBlank: true},
 )
 
 type CustomFormData struct {
@@ -103,6 +104,20 @@ func TestFormValidateJSONInvalid(test *testing.T) {
 
 	if err, _ := CustomForm.ValidateJSON(&form, reader); err == nil {
 		test.Fatal("Must return error!")
+	}
+}
+
+func TestFormValidateForm(test *testing.T) {
+	var form CustomFormData
+	var payload, _ = url.ParseQuery("id=1&Username")
+
+	if err, errors := CustomForm.ValidateForm(&form, payload); err != nil {
+		test.Errorf("Clean error: %s", err)
+		test.Errorf("Fields errors: %s", errors)
+	} else if form.ID != 1 {
+		test.Errorf("ID incorrect!")
+		test.Errorf("Expected: 1")
+		test.Errorf("Got: %d", form.ID)
 	}
 }
 

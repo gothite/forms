@@ -3,6 +3,7 @@ package forms
 import (
 	"encoding/json"
 	"io"
+	"net/url"
 	"reflect"
 
 	"github.com/gothite/forms/codes"
@@ -47,6 +48,16 @@ func (form *Form) ValidateJSON(target FormData, reader io.Reader) (error, map[st
 
 	if err := json.NewDecoder(reader).Decode(&data); err != nil {
 		return form.GetError(codes.InvalidJSON, nil), nil
+	}
+
+	return form.Validate(target, data)
+}
+
+func (form *Form) ValidateForm(target FormData, payload url.Values) (error, map[string]error) {
+	var data = make(map[string]interface{}, len(form.Fields))
+
+	for key, values := range payload {
+		data[key] = values[0]
 	}
 
 	return form.Validate(target, data)
