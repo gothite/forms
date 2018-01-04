@@ -7,6 +7,14 @@ import (
 	"github.com/gothite/forms/fields"
 )
 
+const ErrorCodeTest uint = 777
+
+var CustomForm = NewForm(
+	map[uint]error{ErrorCodeTest: TestError{}},
+	&fields.Integer{Name: "id", Required: true},
+	&fields.String{Name: "Username"},
+)
+
 type CustomFormData struct {
 	ID       int `forms:"id"`
 	Username string
@@ -20,10 +28,11 @@ func (form *CustomFormData) Clean() error {
 	return nil
 }
 
-var CustomForm = NewForm(
-	&fields.Integer{Name: "id", Required: true},
-	&fields.String{Name: "Username"},
-)
+type TestError struct{}
+
+func (err TestError) Error() string {
+	return ""
+}
 
 func TestForm(test *testing.T) {
 	var form CustomFormData
@@ -61,6 +70,24 @@ func TestFormCleanFail(test *testing.T) {
 
 	if err, _ := CustomForm.Validate(&form, data); err == nil {
 		test.Fatal("Must fail!")
+	}
+}
+
+func TestFormGetError(test *testing.T) {
+	if err := CustomForm.GetError(ErrorCodeTest, nil); err == nil {
+		test.Fatal("Must return error!")
+	} else if _, ok := err.(TestError); !ok {
+		test.Fatal("Must be TestError!")
+	}
+}
+
+func TestFormGetErrorUnknownCode(test *testing.T) {
+	if err := CustomForm.GetError(666, nil); err == nil {
+		test.Fatal("Must return error!")
+	} else if err, ok := err.(*Error); !ok {
+		test.Fatal("Must be Error!")
+	} else {
+		_ = err.Error()
 	}
 }
 

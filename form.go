@@ -1,7 +1,6 @@
 package forms
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/gothite/forms/fields"
@@ -14,11 +13,30 @@ type FormData interface {
 // Form describes a form validator.
 type Form struct {
 	Fields []fields.Field
+	Errors map[uint]error
 }
 
 // NewForm returns Form instance with passed fields.
-func NewForm(fields ...fields.Field) *Form {
-	return &Form{Fields: fields}
+func NewForm(errors map[uint]error, fields ...fields.Field) *Form {
+	return &Form{Errors: errors, Fields: fields}
+}
+
+func (form *Form) GetError(code uint, errors map[string]error) error {
+	if err, ok := form.Errors[code]; ok {
+		return err
+	} else if message, ok := FormErrors[code]; ok {
+		return &Error{
+			Code:    code,
+			Message: message,
+			Errors:  errors,
+		}
+	} else {
+		return &Error{
+			Code:    ErrorCodeUnknown,
+			Message: FormErrors[ErrorCodeUnknown],
+			Errors:  errors,
+		}
+	}
 }
 
 // Validate validates input data and map it to target.
@@ -58,7 +76,7 @@ func (form *Form) Validate(target FormData, data map[string]interface{}) (error,
 		return nil, errors
 	}
 
-	return fmt.Errorf(""), errors
+	return form.GetError(ErrorCodeInvalid, errors), errors
 }
 
 func Map(target FormData, data map[string]interface{}) {
