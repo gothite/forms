@@ -45,7 +45,7 @@ func (field *URL) GetName() string {
 
 // GetError returns error by code.
 func (field *URL) GetError(code uint, value interface{}, parameters ...interface{}) error {
-	return getError(code, value, field.Errors, URLErrors, field.ErrorFunc, parameters...)
+	return getError(field, code, value, field.Errors, URLErrors, field.ErrorFunc, parameters...)
 }
 
 // Validate check and clean an input value.

@@ -9,4 +9,4 @@ type Field interface {
 	Validate(value interface{}) (interface{}, error)
 }
 
-type ErrorFunc func(code uint, value interface{}, parameters ...interface{}) error
+type ErrorFunc func(field Field, code uint, value interface{}, parameters ...interface{}) error

@@ -40,7 +40,7 @@ func (field *Datetime) GetName() string {
 
 // GetError returns error by code.
 func (field *Datetime) GetError(code uint, value interface{}, parameters ...interface{}) error {
-	return getError(code, value, field.Errors, DatetimeErrors, field.ErrorFunc, parameters...)
+	return getError(field, code, value, field.Errors, DatetimeErrors, field.ErrorFunc, parameters...)
 }
 
 // Validate check and clean an input value.

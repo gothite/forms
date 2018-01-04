@@ -43,7 +43,7 @@ func (field *String) GetName() string {
 
 // GetError returns error by code.
 func (field *String) GetError(code uint, value interface{}, parameters ...interface{}) error {
-	return getError(code, value, field.Errors, StringErrors, field.ErrorFunc, parameters...)
+	return getError(field, code, value, field.Errors, StringErrors, field.ErrorFunc, parameters...)
 }
 
 // Validate check and clean an input value.

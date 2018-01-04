@@ -44,7 +44,7 @@ func (field *Boolean) GetName() string {
 
 // GetError returns error by code.
 func (field *Boolean) GetError(code uint, value interface{}, parameters ...interface{}) error {
-	return getError(code, value, field.Errors, BooleanErrors, field.ErrorFunc, parameters...)
+	return getError(field, code, value, field.Errors, BooleanErrors, field.ErrorFunc, parameters...)
 }
 
 // Validate check and clean an input value.
