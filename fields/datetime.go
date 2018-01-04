@@ -1,25 +1,26 @@
 package fields
 
 import (
-	"fmt"
 	"time"
 
+	"github.com/gothite/forms/codes"
 	"github.com/gothite/forms/validators"
 )
 
 // DatetimeErrors is a code-error mapping for Datetime field.
-var DatetimeErrors = map[string]string{
-	"Required": "This field is required.",
-	"Invalid":  "Ensure this value is a valid datetime string.",
+var DatetimeErrors = map[uint]string{
+	codes.Required: "This field is required.",
+	codes.Invalid:  "Ensure this value is a valid datetime string.",
 }
 
 // Datetime is integer field.
 type Datetime struct {
 	Name       string
-	Validators []validators.Validator
+	Validators []validators.DatetimeValidator
 	Required   bool
-	Default    float64
-	Errors     map[string]string // Overrides default errors
+	Default    time.Time
+	Errors     map[uint]string
+	ErrorFunc  ErrorFunc
 }
 
 // IsRequired returns true if field is required.
@@ -37,35 +38,36 @@ func (field *Datetime) GetName() string {
 	return field.Name
 }
 
-// GetValidators returns additional field validators.
-func (field *Datetime) GetValidators() []validators.Validator {
-	return field.Validators
-}
-
 // GetError returns error by code.
-func (field *Datetime) GetError(code string, parameters ...interface{}) error {
-	message, ok := field.Errors[code]
-
-	if !ok {
-		message = DatetimeErrors[code]
-	}
-
-	return fmt.Errorf(message, parameters...)
+func (field *Datetime) GetError(code uint, value interface{}, parameters ...interface{}) error {
+	return getError(field, code, value, field.Errors, DatetimeErrors, field.ErrorFunc, parameters...)
 }
 
 // Validate check and clean an input value.
 func (field *Datetime) Validate(v interface{}) (interface{}, error) {
-	value, ok := v.(string)
+	var value time.Time
 
-	if !ok {
-		return nil, field.GetError("Invalid")
+	if result, ok := v.(string); !ok {
+		return nil, field.GetError(codes.Invalid, v)
+	} else {
+		var err error
+
+		value, err = time.Parse(time.RFC3339Nano, result)
+
+		if err != nil {
+			return nil, field.GetError(codes.Invalid, v)
+		}
 	}
 
-	datetime, err := time.Parse(time.RFC3339, value)
+	for _, validator := range field.Validators {
+		var err *validators.Error
 
-	if err != nil {
-		return nil, err
+		value, err = validator.Validate(value)
+
+		if err != nil {
+			return nil, field.GetError(err.Code, v, err.Parameters...)
+		}
 	}
 
-	return datetime, nil
+	return value, nil
 }

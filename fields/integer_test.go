@@ -1,10 +1,15 @@
 package fields
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/gothite/forms/validators"
 )
+
+func TestIntegerAsField(test *testing.T) {
+	var _ Field = (*Integer)(nil)
+}
 
 func TestIntegerIsRequired(test *testing.T) {
 	field := Integer{Required: false}
@@ -33,74 +38,70 @@ func TestIntegerGetName(test *testing.T) {
 	}
 }
 
-func TestIntegerGetValidators(test *testing.T) {
-	field := Integer{Validators: []validators.Validator{validators.MaxLength(1)}}
+func TestIntegerValidate(test *testing.T) {
+	var field = Integer{}
+	var value = 5
 
-	if validators := field.GetValidators(); validators[0] == nil {
-		test.Error("Returned invalid validators")
-		return
+	if got, err := field.Validate(value); err != nil {
+		test.Fatalf("Error: %s", err)
+	} else if got != value {
+		test.Errorf("Incorrect value!")
+		test.Errorf("Expected: %d", value)
+		test.Errorf("Got: %d", got)
 	}
 }
 
-func TestIntegerValidate(test *testing.T) {
-	field := Integer{}
+func TestIntegerValidateIncorrectValue(test *testing.T) {
+	var field = Integer{}
 
-	value, err := field.Validate(5)
-
-	if err != nil {
-		test.Errorf("Returned error: %v", err)
-		return
-	}
-
-	if value, ok := value.(int); !ok || value != 5 {
-		test.Error("Returned invalid string")
-		return
-	}
-
-	_, err = field.Validate(nil)
-
-	if err == nil {
-		test.Errorf("Finished without error on wrong string")
-		return
+	if _, err := field.Validate(nil); err == nil {
+		test.Fatalf("Must fail!")
 	}
 }
 
 func TestIntegerValidateAsString(test *testing.T) {
-	field := Integer{AllowStrings: true}
+	var field = Integer{AllowStrings: true}
+	var value = 2
 
-	value, err := field.Validate("2")
-
-	if err != nil {
-		test.Errorf("Returned error: %v", err)
-		return
-	}
-
-	if value, ok := value.(int); !ok || value != 2 {
-		test.Error("Returned invalid integer")
-		return
-	}
-
-	_, err = field.Validate("2a")
-
-	if err == nil {
-		test.Errorf("Finished without error on wrong string")
+	if got, err := field.Validate(strconv.Itoa(value)); err != nil {
+		test.Fatalf("Error: %s", err)
+	} else if got != value {
+		test.Errorf("Incorrect value!")
+		test.Errorf("Expected: %d", value)
+		test.Errorf("Got: %d", got)
 		return
 	}
 }
 
-func TestIntegerValidateMinMax(test *testing.T) {
-	field := Integer{
-		MinValue: validators.MinValue(2),
-		MaxValue: validators.MaxValue(4),
+func TestIntegerValidateInvalidString(test *testing.T) {
+	var field = Integer{AllowStrings: true}
+
+	if _, err := field.Validate(nil); err == nil {
+		test.Fatalf("Must fail!")
+	}
+}
+
+func TestIntegerValidateIncorrectString(test *testing.T) {
+	var field = Integer{AllowStrings: true}
+
+	if _, err := field.Validate("2a"); err == nil {
+		test.Fatalf("Must fail!")
+	}
+}
+
+func TestIntegerValidateValidators(test *testing.T) {
+	var field = Integer{
+		Validators: []validators.IntegerValidator{
+			validators.IntegerMinValue(2),
+			validators.IntegerMaxValue(4),
+		},
 	}
 
-	if _, err := field.Validate(1); err == nil {
-		test.Errorf("Error must occured")
-		return
+	if _, err := field.Validate(1.0); err == nil {
+		test.Fatalf("Must fail!")
 	}
 
-	if _, err := field.Validate(5); err == nil {
-		test.Errorf("Error must occured")
-		return
+	if _, err := field.Validate(5.0); err == nil {
+		test.Fatalf("Must fail!")
 	}
 }
