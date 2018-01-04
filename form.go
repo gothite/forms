@@ -1,14 +1,14 @@
 package forms
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/gothite/forms/fields"
 )
 
-// NewForm returns Form instance with passed fields.
-func NewForm(fields ...fields.Field) *Form {
-	return &Form{Fields: fields}
+type FormData interface {
+	Clean() error
 }
 
 // Form describes a form validator.
@@ -16,9 +16,14 @@ type Form struct {
 	Fields []fields.Field
 }
 
+// NewForm returns Form instance with passed fields.
+func NewForm(fields ...fields.Field) *Form {
+	return &Form{Fields: fields}
+}
+
 // Validate validates input data and map it to target.
-func (form *Form) Validate(target interface{}, data map[string]interface{}) (bool, map[string]error) {
-	var errors = make(map[string]error)
+func (form *Form) Validate(target FormData, data map[string]interface{}) (error, map[string]error) {
+	var errors = make(map[string]error, len(form.Fields))
 
 	for _, field := range form.Fields {
 		value, ok := data[field.GetName()]
@@ -45,13 +50,18 @@ func (form *Form) Validate(target interface{}, data map[string]interface{}) (boo
 
 	if len(errors) == 0 {
 		Map(target, data)
-		return true, errors
+
+		if err := target.Clean(); err != nil {
+			return err, errors
+		}
+
+		return nil, errors
 	}
 
-	return false, errors
+	return fmt.Errorf(""), errors
 }
 
-func Map(target interface{}, data map[string]interface{}) {
+func Map(target FormData, data map[string]interface{}) {
 	var targetValue = reflect.Indirect(reflect.ValueOf(target))
 	var targetType = targetValue.Type()
 	var numFields = targetValue.NumField()

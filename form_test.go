@@ -1,24 +1,38 @@
 package forms
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/gothite/forms/fields"
 )
 
-func TestForm(test *testing.T) {
-	var form struct {
-		ID       int `forms:"id"`
-		Username string
+type CustomFormData struct {
+	ID       int `forms:"id"`
+	Username string
+}
+
+func (form *CustomFormData) Clean() error {
+	if form.ID == 0 {
+		return errors.New("ID == 0!")
 	}
-	var CustomForm = NewForm(
-		&fields.Integer{Name: "id", Required: true},
-		&fields.String{Name: "Username"},
-	)
+
+	return nil
+}
+
+var CustomForm = NewForm(
+	&fields.Integer{Name: "id", Required: true},
+	&fields.String{Name: "Username"},
+)
+
+func TestForm(test *testing.T) {
+	var form CustomFormData
 	var data = map[string]interface{}{"id": 1}
 
-	if valid, errors := CustomForm.Validate(&form, data); !valid {
-		test.Fatalf("Errors: %s", errors)
+	if err, errors := CustomForm.Validate(&form, data); err != nil {
+		test.Errorf("Clean error: %s", err)
+		test.Errorf("Fields errors: %s", errors)
+		return
 	}
 
 	if form.ID != data["id"].(int) {
@@ -29,17 +43,10 @@ func TestForm(test *testing.T) {
 }
 
 func TestFormIncorrectData(test *testing.T) {
-	var form struct {
-		ID       int `forms:"id"`
-		Username string
-	}
-	var CustomForm = NewForm(
-		&fields.Integer{Name: "id", Required: true},
-		&fields.String{Name: "Username"},
-	)
+	var form CustomFormData
 	var data = map[string]interface{}{"Username": 1}
 
-	if valid, errors := CustomForm.Validate(&form, data); valid {
+	if err, errors := CustomForm.Validate(&form, data); err == nil {
 		test.Fatal("Must fail!")
 	} else if _, ok := errors["id"]; !ok {
 		test.Fatal("Errors must contains 'id'!")
@@ -48,16 +55,16 @@ func TestFormIncorrectData(test *testing.T) {
 	}
 }
 
-func BenchmarkForm(benchmark *testing.B) {
-	type CustomFormData struct {
-		ID       int    `forms:"id"`
-		Username string `forms:"username"`
-	}
+func TestFormCleanFail(test *testing.T) {
+	var form CustomFormData
+	var data = map[string]interface{}{"id": 0}
 
-	var CustomForm = NewForm(
-		&fields.Integer{Name: "id", Required: true},
-		&fields.String{Name: "username"},
-	)
+	if err, _ := CustomForm.Validate(&form, data); err == nil {
+		test.Fatal("Must fail!")
+	}
+}
+
+func BenchmarkForm(benchmark *testing.B) {
 	var data = map[string]interface{}{"id": 1}
 
 	for i := 0; i < benchmark.N; i++ {
