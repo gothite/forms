@@ -8,32 +8,44 @@ import (
 	"github.com/gothite/forms/validators"
 )
 
-func authorize(form *forms.Form) error {
-	// check user data
-	// form.Fields["email"].Value
-	// form.Fields["password"].Value
+type LoginFormData struct {
+	Email    string `forms:"email"`
+	Password string `forms:"password"`
+}
+
+func (form *LoginFormData) Clean() error {
+	// Check data
 	return nil
 }
 
 // LoginForm handles user login.
-var LoginForm = forms.NewFormFactory(
-	authorize, // or nil
+var LoginForm = forms.NewForm(
 	&fields.Email{
 		Name:   "email",
 		Errors: map[string]string{"Invalid": "Please, set a valid email."},
 	},
-	&fields.String{Name: "password", MinLength: validators.MinLength(5)},
+	&fields.String{
+		Name: "password",
+		Validators: []validators.StringValidator{
+			validators.StringMinLength(5),
+		},
+	},
 )
 
 func main() {
+	var form LoginFormData
 	data := map[string]interface{}{"email": "me@pyvimcom", "password": "pass"}
-	form := LoginForm(data)
 
-	if !form.IsValid() {
-		fmt.Printf("Form error: %v\n", form.Error)
+	if ok, errors := LoginForm.Validate(&form, data); !ok {
+		for field, err := range errors {
+			fmt.Printf("%v error: %v\n", field, err)
+		}
+	} else {
+		fmt.Printf("Email: %s\n", form.Email)
+		fmt.Printf("Password: %s\n", form.Password)
 
-		for name, field := range form.Fields {
-			fmt.Printf("%v error: %v\n", name, field.Error)
+		if err := form.Clean(); err != nil {
+			fmt.Printf("Form error: %v\n", err)
 		}
 	}
 }
