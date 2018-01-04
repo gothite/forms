@@ -1,6 +1,8 @@
 package forms
 
 import (
+	"encoding/json"
+	"io"
 	"reflect"
 
 	"github.com/gothite/forms/codes"
@@ -38,6 +40,16 @@ func (form *Form) GetError(code uint, errors map[string]error) error {
 			Errors:  errors,
 		}
 	}
+}
+
+func (form *Form) ValidateJSON(target FormData, reader io.Reader) (error, map[string]error) {
+	var data map[string]interface{}
+
+	if err := json.NewDecoder(reader).Decode(&data); err != nil {
+		return form.GetError(codes.InvalidJSON, nil), nil
+	}
+
+	return form.Validate(target, data)
 }
 
 // Validate validates input data and map it to target.

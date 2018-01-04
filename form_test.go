@@ -1,6 +1,7 @@
 package forms
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/gothite/forms/fields"
@@ -10,7 +11,7 @@ const ErrorCodeTest uint = 777
 
 var CustomForm = NewForm(
 	map[uint]error{ErrorCodeTest: TestError{}},
-	&fields.Integer{Name: "id", Required: true},
+	&fields.Integer{Name: "id", Required: true, AllowStrings: true},
 	&fields.String{Name: "Username"},
 )
 
@@ -79,6 +80,29 @@ func TestFormGetErrorUnknownCode(test *testing.T) {
 		test.Fatal("Must be Error!")
 	} else {
 		_ = err.Error()
+	}
+}
+
+func TestFormValidateJSON(test *testing.T) {
+	var form CustomFormData
+	var reader = bytes.NewReader([]byte(`{"id": "1"}`))
+
+	if err, errors := CustomForm.ValidateJSON(&form, reader); err != nil {
+		test.Errorf("Clean error: %s", err)
+		test.Errorf("Fields errors: %s", errors)
+	} else if form.ID != 1 {
+		test.Errorf("ID incorrect!")
+		test.Errorf("Expected: 1")
+		test.Errorf("Got: %d", form.ID)
+	}
+}
+
+func TestFormValidateJSONInvalid(test *testing.T) {
+	var form CustomFormData
+	var reader = bytes.NewReader([]byte(`{"id=1"}`))
+
+	if err, _ := CustomForm.ValidateJSON(&form, reader); err == nil {
+		test.Fatal("Must return error!")
 	}
 }
 

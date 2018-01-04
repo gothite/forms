@@ -7,8 +7,9 @@ import (
 )
 
 var Errors = map[uint]string{
-	codes.Unknown: "Unknown error.",
-	codes.Invalid: "Ensure that all values are valid.",
+	codes.Unknown:     "Unknown error.",
+	codes.Invalid:     "Ensure that all values are valid.",
+	codes.InvalidJSON: "Unable to parse JSON.",
 }
 
 type Error struct {
