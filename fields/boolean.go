@@ -72,6 +72,8 @@ func (field *Boolean) Validate(v interface{}) (interface{}, error) {
 			} else {
 				return nil, field.GetError(codes.Invalid, v)
 			}
+		} else {
+			return nil, field.GetError(codes.Invalid, v)
 		}
 	case int:
 		if field.AllowNumbers {

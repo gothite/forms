@@ -66,6 +66,14 @@ func TestBooleanValidateInvalidValue(test *testing.T) {
 	}
 }
 
+func TestBooleanValidateStringNotAllowed(test *testing.T) {
+	var field = Boolean{}
+
+	if _, err := field.Validate("s"); err == nil {
+		test.Fatalf("Must fail!")
+	}
+}
+
 func TestBooleanValidateString(test *testing.T) {
 	var field = Boolean{AllowStrings: true}
 	var values = map[string]bool{
