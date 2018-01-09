@@ -59,6 +59,14 @@ func TestIntegerValidateIncorrectValue(test *testing.T) {
 	}
 }
 
+func TestIntegerValidateStringNotAllowed(test *testing.T) {
+	var field = Integer{}
+
+	if _, err := field.Validate("s"); err == nil {
+		test.Fatalf("Must fail!")
+	}
+}
+
 func TestIntegerValidateAsString(test *testing.T) {
 	var field = Integer{AllowStrings: true}
 	var value = 2

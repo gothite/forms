@@ -65,6 +65,8 @@ func (field *Integer) Validate(v interface{}) (interface{}, error) {
 			if err != nil {
 				return nil, field.GetError(codes.Invalid, v)
 			}
+		} else {
+			return nil, field.GetError(codes.Invalid, v)
 		}
 	default:
 		return nil, field.GetError(codes.Invalid, v)
