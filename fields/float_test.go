@@ -60,6 +60,14 @@ func TestFloatValidateInvalidValue(test *testing.T) {
 	}
 }
 
+func TestFloatValidateStringNotAllowed(test *testing.T) {
+	var field = Float{}
+
+	if _, err := field.Validate(""); err == nil {
+		test.Fatal("Must fail!")
+	}
+}
+
 func TestFloatValidateString(test *testing.T) {
 	var field = Float{AllowStrings: true}
 	var value = 2.0
