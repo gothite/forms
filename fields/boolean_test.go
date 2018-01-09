@@ -103,6 +103,14 @@ func TestBooleanValidateIncorrectString(test *testing.T) {
 	}
 }
 
+func TestBooleanValidateNumbersNotAllowed(test *testing.T) {
+	var field = Boolean{}
+
+	if _, err := field.Validate(1); err == nil {
+		test.Fatalf("Must fail!")
+	}
+}
+
 func TestBooleanValidateNumber(test *testing.T) {
 	var field = Boolean{AllowNumbers: true}
 

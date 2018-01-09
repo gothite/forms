@@ -84,6 +84,8 @@ func (field *Boolean) Validate(v interface{}) (interface{}, error) {
 			} else {
 				return nil, field.GetError(codes.Invalid, v)
 			}
+		} else {
+			return nil, field.GetError(codes.Invalid, v)
 		}
 	default:
 		return nil, field.GetError(codes.Invalid, v)
