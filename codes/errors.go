@@ -10,4 +10,5 @@ const (
 	MaxLength
 	MinValue
 	MaxValue
+	IncorrectItem
 )
