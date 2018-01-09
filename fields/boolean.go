@@ -25,6 +25,7 @@ type Boolean struct {
 
 	AllowStrings bool // Allow pass strings "t", "true", "f", "false" as valid boolean.
 	AllowNumbers bool // Allow pass numbers 0 or 1 as valid boolean.
+	Flag         bool // Pass validation if value is empty (nil or "").
 }
 
 // IsRequired returns true if field is required.
@@ -49,13 +50,19 @@ func (field *Boolean) GetError(code uint, value interface{}, parameters ...inter
 
 // Validate check and clean an input value.
 func (field *Boolean) Validate(v interface{}) (interface{}, error) {
+	if v == nil && field.Flag {
+		return true, nil
+	}
+
 	var value bool
 
 	switch v := v.(type) {
 	case bool:
 		value = v
 	case string:
-		if field.AllowStrings {
+		if v == "" && field.Flag {
+			return true, nil
+		} else if field.AllowStrings {
 			v = strings.ToLower(v)
 
 			if v == "t" || v == "true" {

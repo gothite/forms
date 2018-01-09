@@ -123,6 +123,30 @@ func TestBooleanValidateIncorrectNumber(test *testing.T) {
 	}
 }
 
+func TestBooleanValidateFlagNil(test *testing.T) {
+	var field = Boolean{Flag: true}
+
+	if got, err := field.Validate(nil); err != nil {
+		test.Fatalf("Error: %s", err)
+	} else if !got.(bool) {
+		test.Errorf("Incorrect value!")
+		test.Errorf("Expected: %t", true)
+		test.Errorf("Got: %t", got)
+	}
+}
+
+func TestBooleanValidateFlagEmptyString(test *testing.T) {
+	var field = Boolean{Flag: true}
+
+	if got, err := field.Validate(""); err != nil {
+		test.Fatalf("Error: %s", err)
+	} else if !got.(bool) {
+		test.Errorf("Incorrect value!")
+		test.Errorf("Expected: %t", true)
+		test.Errorf("Got: %t", got)
+	}
+}
+
 func TestBooleanValidateValidators(test *testing.T) {
 	var field = Boolean{
 		Validators: []validators.BooleanValidator{
