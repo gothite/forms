@@ -14,11 +14,13 @@ var CustomForm = NewForm(
 	map[uint]error{ErrorCodeTest: TestError{}},
 	&fields.Integer{Name: "id", Required: true, AllowStrings: true},
 	&fields.String{Name: "Username", AllowBlank: true},
+	&fields.Array{Name: "friends", Required: false},
 )
 
 type CustomFormData struct {
 	ID       int `forms:"id"`
 	Username string
+	Friends  []string `forms:"friends"`
 }
 
 func (data *CustomFormData) Clean(form *Form) error {
@@ -37,7 +39,7 @@ func (err TestError) Error() string {
 
 func TestForm(test *testing.T) {
 	var form CustomFormData
-	var data = map[string]interface{}{"id": 1}
+	var data = map[string]interface{}{"id": 1, "friends": []string{"John"}}
 
 	if err, errors := CustomForm.Validate(&form, data); err != nil {
 		test.Errorf("Clean error: %s", err)
@@ -49,6 +51,12 @@ func TestForm(test *testing.T) {
 		test.Errorf("ID incorrect!")
 		test.Errorf("Expected: %d", data["id"].(int))
 		test.Errorf("Got: %d", form.ID)
+	}
+
+	if form.Friends[0] != data["friends"].([]string)[0] {
+		test.Errorf("Friends incorrect!")
+		test.Errorf("Expected: %v", data["friends"].([]string))
+		test.Errorf("Got: %v", form.Friends)
 	}
 }
 
@@ -122,7 +130,7 @@ func TestFormValidateForm(test *testing.T) {
 }
 
 func BenchmarkForm(benchmark *testing.B) {
-	var data = map[string]interface{}{"id": 1}
+	var data = map[string]interface{}{"id": 1, "friends": []string{"John"}}
 
 	for i := 0; i < benchmark.N; i++ {
 		var form CustomFormData

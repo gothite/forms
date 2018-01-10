@@ -110,14 +110,25 @@ func Map(target FormData, data map[string]interface{}) {
 
 	for i := 0; i < numFields; i++ {
 		var fieldType = targetType.Field(i)
+		var fieldValue = targetValue.Field(i)
 		var name = fieldType.Tag.Get("forms")
 
 		if name == "" {
 			name = fieldType.Name
 		}
 
-		if value, ok := data[name]; ok {
-			targetValue.Field(i).Set(reflect.ValueOf(value))
+		if value, ok := data[name]; ok && value != nil {
+			var reflectValue = reflect.ValueOf(value)
+
+			if reflectValue.Kind() == reflect.Slice {
+				var length = reflectValue.Len()
+				var elem = fieldValue.Addr().Elem()
+
+				elem.Set(reflect.MakeSlice(reflectValue.Type(), length, length))
+				reflect.Copy(elem, reflectValue)
+			} else {
+				fieldValue.Set(reflectValue)
+			}
 		}
 	}
 }
