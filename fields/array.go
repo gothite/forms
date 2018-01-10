@@ -70,7 +70,7 @@ func (field *Array) Validate(value interface{}) (interface{}, error) {
 			v, err := field.Field.Validate(indexValue.Interface())
 
 			if err != nil {
-				return nil, field.GetError(codes.IncorrectItem, v, i)
+				return nil, field.GetError(codes.IncorrectItem, value, i)
 			}
 
 			indexValue.Set(reflect.ValueOf(v))
