@@ -14,13 +14,29 @@ var CustomForm = NewForm(
 	map[uint]error{ErrorCodeTest: TestError{}},
 	&fields.Integer{Name: "id", Required: true, AllowStrings: true},
 	&fields.String{Name: "Username", AllowBlank: true},
-	&fields.Array{Name: "friends", Required: false},
+	&fields.Array{
+		Name:     "friends",
+		Required: false,
+		Field:    &fields.String{},
+	},
+	&fields.Object{
+		Name:     "location",
+		Required: false,
+		Fields: []fields.Field{
+			&fields.String{Name: "city", Required: true},
+			&fields.String{Name: "street"},
+		},
+	},
 )
 
 type CustomFormData struct {
 	ID       int `forms:"id"`
 	Username string
 	Friends  []string `forms:"friends"`
+	Location struct {
+		City   string `forms:"city"`
+		Street string `forms:"street"`
+	} `forms:"location"`
 }
 
 func (data *CustomFormData) Clean(form *Form) error {
@@ -39,7 +55,11 @@ func (err TestError) Error() string {
 
 func TestForm(test *testing.T) {
 	var form CustomFormData
-	var data = map[string]interface{}{"id": 1, "friends": []string{"John"}}
+	var data = map[string]interface{}{
+		"id":       1,
+		"friends":  []string{"John"},
+		"location": map[string]string{"city": "Moscow"},
+	}
 
 	if err, errors := CustomForm.Validate(&form, data); err != nil {
 		test.Errorf("Clean error: %s", err)
@@ -57,6 +77,12 @@ func TestForm(test *testing.T) {
 		test.Errorf("Friends incorrect!")
 		test.Errorf("Expected: %v", data["friends"].([]string))
 		test.Errorf("Got: %v", form.Friends)
+	}
+
+	if form.Location.City != data["location"].(map[string]interface{})["city"].(string) {
+		test.Errorf("Location incorrect!")
+		test.Errorf("Expected: %v", data["location"].(map[string]interface{})["city"].(string))
+		test.Errorf("Got: %v", form.Location.City)
 	}
 }
 
@@ -130,7 +156,11 @@ func TestFormValidateForm(test *testing.T) {
 }
 
 func BenchmarkForm(benchmark *testing.B) {
-	var data = map[string]interface{}{"id": 1, "friends": []string{"John"}}
+	var data = map[string]interface{}{
+		"id":       1,
+		"friends":  []string{"John"},
+		"location": map[string]interface{}{"city": "Moscow"},
+	}
 
 	for i := 0; i < benchmark.N; i++ {
 		var form CustomFormData

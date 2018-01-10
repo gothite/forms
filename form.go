@@ -91,7 +91,7 @@ func (form *Form) Validate(target FormData, data map[string]interface{}) (error,
 	}
 
 	if len(errors) == 0 {
-		Map(target, data)
+		Map(target, data, []int{}, target)
 
 		if err := target.Clean(form); err != nil {
 			return err, errors
@@ -103,14 +103,18 @@ func (form *Form) Validate(target FormData, data map[string]interface{}) (error,
 	return form.GetError(codes.Invalid, errors), errors
 }
 
-func Map(target FormData, data map[string]interface{}) {
+func Map(target interface{}, data map[string]interface{}, index []int, subtarget interface{}) {
 	var targetValue = reflect.Indirect(reflect.ValueOf(target))
 	var targetType = targetValue.Type()
-	var numFields = targetValue.NumField()
+	var numFields = reflect.Indirect(reflect.ValueOf(subtarget)).NumField()
+
+	index = append(index, 0)
 
 	for i := 0; i < numFields; i++ {
-		var fieldType = targetType.Field(i)
-		var fieldValue = targetValue.Field(i)
+		index[len(index)-1] = i
+
+		var fieldType = targetType.FieldByIndex(index)
+		var fieldValue = targetValue.FieldByIndex(index)
 		var name = fieldType.Tag.Get("forms")
 
 		if name == "" {
@@ -126,6 +130,8 @@ func Map(target FormData, data map[string]interface{}) {
 
 				elem.Set(reflect.MakeSlice(reflectValue.Type(), length, length))
 				reflect.Copy(elem, reflectValue)
+			} else if reflectValue.Kind() == reflect.Map {
+				Map(target, value.(map[string]interface{}), index, fieldValue.Interface())
 			} else {
 				fieldValue.Set(reflectValue)
 			}
