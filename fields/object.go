@@ -100,13 +100,13 @@ func (field *Object) Validate(value interface{}) (interface{}, error) {
 	}
 
 	for _, validator := range field.Validators {
-		var err *validators.Error
-
-		value, err = validator.Validate(value)
+		v, err := validator.Validate(value)
 
 		if err != nil {
 			return nil, field.GetError(err.Code, value, err.Parameters...)
 		}
+
+		value = v
 	}
 
 	return value, nil
