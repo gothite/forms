@@ -149,13 +149,11 @@ func set(target reflect.Value, value reflect.Value) {
 		target.SetBool(value.Interface().(bool))
 	case reflect.String:
 		target.SetString(value.Interface().(string))
-	case reflect.Complex64, reflect.Complex128:
-		target.SetComplex(value.Interface().(complex128))
 	case reflect.Float32, reflect.Float64:
 		target.SetFloat(value.Interface().(float64))
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		target.SetInt(value.Interface().(int64))
+		target.SetInt(int64(value.Interface().(int)))
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		target.SetUint(value.Interface().(uint64))
+		target.SetUint(uint64(value.Interface().(int)))
 	}
 }

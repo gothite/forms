@@ -75,7 +75,7 @@ func TestForm(test *testing.T) {
 
 	if form.Friends[0] != data["friends"].([]interface{})[0].(string) {
 		test.Errorf("Friends incorrect!")
-		test.Errorf("Expected: %v", data["friends"].([]string))
+		test.Errorf("Expected: %v", data["friends"].([]interface{}))
 		test.Errorf("Got: %v", form.Friends)
 	}
 
