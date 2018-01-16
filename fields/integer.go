@@ -1,6 +1,7 @@
 package fields
 
 import (
+	"reflect"
 	"strconv"
 
 	"github.com/gothite/forms/codes"
@@ -52,8 +53,8 @@ func (field *Integer) Validate(v interface{}) (interface{}, error) {
 	var value int
 
 	switch v := v.(type) {
-	case int:
-		value = v
+	case int, int8, int16, int32, int64:
+		value = int(reflect.ValueOf(v).Int())
 	case float64:
 		value = int(v)
 	case string:
