@@ -128,13 +128,34 @@ func Map(target interface{}, data map[string]interface{}, index []int, subtarget
 				var length = reflectValue.Len()
 				var elem = fieldValue.Addr().Elem()
 
-				elem.Set(reflect.MakeSlice(reflectValue.Type(), length, length))
-				reflect.Copy(elem, reflectValue)
+				elem.Set(reflect.MakeSlice(fieldType.Type, length, length))
+
+				for n := 0; n < length; n++ {
+					set(fieldValue.Index(n), reflectValue.Index(n))
+				}
+
 			} else if reflectValue.Kind() == reflect.Map {
 				Map(target, value.(map[string]interface{}), index, fieldValue.Interface())
 			} else {
 				fieldValue.Set(reflectValue)
 			}
 		}
+	}
+}
+
+func set(target reflect.Value, value reflect.Value) {
+	switch target.Kind() {
+	case reflect.Bool:
+		target.SetBool(value.Interface().(bool))
+	case reflect.String:
+		target.SetString(value.Interface().(string))
+	case reflect.Complex64, reflect.Complex128:
+		target.SetComplex(value.Interface().(complex128))
+	case reflect.Float32, reflect.Float64:
+		target.SetFloat(value.Interface().(float64))
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		target.SetInt(value.Interface().(int64))
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		target.SetUint(value.Interface().(uint64))
 	}
 }

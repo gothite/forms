@@ -57,8 +57,8 @@ func TestForm(test *testing.T) {
 	var form CustomFormData
 	var data = map[string]interface{}{
 		"id":       1,
-		"friends":  []string{"John"},
-		"location": map[string]string{"city": "Moscow"},
+		"friends":  []interface{}{"John"},
+		"location": map[string]interface{}{"city": "Moscow"},
 	}
 
 	if err, errors := CustomForm.Validate(&form, data); err != nil {
@@ -73,7 +73,7 @@ func TestForm(test *testing.T) {
 		test.Errorf("Got: %d", form.ID)
 	}
 
-	if form.Friends[0] != data["friends"].([]string)[0] {
+	if form.Friends[0] != data["friends"].([]interface{})[0].(string) {
 		test.Errorf("Friends incorrect!")
 		test.Errorf("Expected: %v", data["friends"].([]string))
 		test.Errorf("Got: %v", form.Friends)
@@ -120,7 +120,7 @@ func TestFormGetErrorUnknownCode(test *testing.T) {
 
 func TestFormValidateJSON(test *testing.T) {
 	var form CustomFormData
-	var reader = bytes.NewReader([]byte(`{"id": "1"}`))
+	var reader = bytes.NewReader([]byte(`{"id": 1}`))
 
 	if err, errors := CustomForm.ValidateJSON(&form, reader); err != nil {
 		test.Errorf("Clean error: %s", err)
