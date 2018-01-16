@@ -55,6 +55,8 @@ func (field *Integer) Validate(v interface{}) (interface{}, error) {
 	switch v := v.(type) {
 	case int, int8, int16, int32, int64:
 		value = int(reflect.ValueOf(v).Int())
+	case uint, uint8, uint16, uint32, uint64:
+		value = int(reflect.ValueOf(v).Uint())
 	case float64:
 		value = int(v)
 	case string:
