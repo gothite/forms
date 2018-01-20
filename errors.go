@@ -18,6 +18,6 @@ type Error struct {
 	Errors  map[string]error `json:"errors"`
 }
 
-func (err *Error) Error() string {
+func (err Error) Error() string {
 	return fmt.Sprintf("%s (code: %d)", err.Message, err.Code)
 }
