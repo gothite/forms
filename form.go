@@ -155,5 +155,7 @@ func set(target reflect.Value, value reflect.Value) {
 		target.SetInt(int64(value.Interface().(int)))
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		target.SetUint(uint64(value.Interface().(int)))
+	default:
+		target.Set(value)
 	}
 }
