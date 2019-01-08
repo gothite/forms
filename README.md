@@ -1,63 +1,17 @@
-# gothite/forms #
+# govenant/forms #
 *Form handling and data validation for Go*
+
+[![](https://godoc.org/github.com/govenant/forms?status.svg)](http://godoc.org/github.com/govenant/forms)
 
 ## Installation ##
 
-`go get github.com/gothite/forms`
-
+`go get -u github.com/govenant/forms`
 
 ## Usage ##
-```go
-package main
+See [examples](https://github.com/govenant/forms/blob/master/examples)
 
-import (
-	"errors"
-	"fmt"
+## Changelog ##
+See [releases](https://github.com/govenant/forms/releases)
 
-	"github.com/gothite/forms"
-	"github.com/gothite/forms/codes"
-	"github.com/gothite/forms/fields"
-	"github.com/gothite/forms/validators"
-)
-
-type LoginFormData struct {
-	Email    string `forms:"email"`
-	Password string `forms:"password"`
-}
-
-func (data *LoginFormData) Clean(form *forms.Form) error {
-	// Check data
-	return nil
-}
-
-// LoginForm handles user login.
-var LoginForm = forms.NewForm(
-	map[uint]error{codes.Invalid: errors.New("Please, check data.")},
-	&fields.Email{
-		Name:   "email",
-		Errors: map[uint]string{codes.Invalid: "Please, set a valid email."},
-	},
-	&fields.String{
-		Name: "password",
-		Validators: []validators.StringValidator{
-			validators.StringMinLength(5),
-		},
-	},
-)
-
-func main() {
-	var form LoginFormData
-	data := map[string]interface{}{"email": "hello@binlockme", "password": "pass"}
-
-	if err, errors := LoginForm.Validate(&form, data); err != nil {
-		fmt.Printf("Form error: %v\n", err)
-
-		for field, err := range errors {
-			fmt.Printf("%v error: %v\n", field, err)
-		}
-	} else {
-		fmt.Printf("Email: %s\n", form.Email)
-		fmt.Printf("Password: %s\n", form.Password)
-	}
-}
-```
+## License ##
+See [LICENSE](https://github.com/govenant/forms/blob/master/LICENSE)
