@@ -10,11 +10,15 @@ type FieldError struct {
 }
 
 func NewFieldError(code uint, field, message string, parameters []interface{}) *FieldError {
-	return &FieldError{code, field, fmt.Sprintf(message, parameters...), parameters}
+	return &FieldError{code, field, message, parameters}
+}
+
+func (err *FieldError) Format() string {
+	return fmt.Sprintf(err.Message, err.Parameters...)
 }
 
 func (err *FieldError) Error() string {
-	return fmt.Sprintf("%s: %s", err.Field, err.Message)
+	return fmt.Sprintf("%s: %s", err.Field, err.Format())
 }
 
 type FormError struct {
@@ -38,7 +42,7 @@ const (
 	Invalid
 )
 
-var Errors = map[uint]string{
+var Messages = map[uint]string{
 	Unknown:     "Unknown error.",
 	Invalid:     "Ensure that all values are valid.",
 	InvalidJSON: "Unable to parse JSON.",
