@@ -46,4 +46,5 @@ var Messages = map[uint]string{
 	Unknown:     "Unknown error.",
 	Invalid:     "Ensure that all values are valid.",
 	InvalidJSON: "Unable to parse JSON.",
+	Required:    "Value is required.",
 }
